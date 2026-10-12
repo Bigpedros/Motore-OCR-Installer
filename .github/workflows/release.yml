@@ -14,11 +14,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate scripts
+      - name: Validate runtime and batch scripts
         shell: pwsh
         run: |
           node --check src/runtime-server.mjs
-          $null = [scriptblock]::Create((Get-Content src/Install-Dependencies.ps1 -Raw))
+          cmd /d /c "call src\Avvia-OCR-Runtime.cmd >nul 2>&1 & exit /b 0"
+          findstr /C:"winget install --id Ollama.Ollama" src\Configure-Local-AI.cmd
+          findstr /C:"taskkill /PID" src\Configure-Local-AI.cmd
+          findstr /C:"runtimeVersion" src\Configure-Local-AI.cmd
+          if (Test-Path src\Install-Dependencies.ps1) { throw "Legacy PowerShell bootstrap must not be packaged." }
 
       - name: Install Inno Setup
         shell: pwsh
@@ -37,9 +41,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete local-ai-latest --cleanup-tag -y 2>$null
-          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale" --notes "Installer Windows per Ollama + OpenCode + OCR Local Runtime." --latest
+          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.1.1" --notes "Installer Windows: rimosso bootstrap PowerShell, aggiornamento del runtime con chiusura della precedente istanza, verifica automatica finale." --latest
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Motore-OCR-Local-Setup
+          name: Motore-OCR-Local-Setup-0.1.1
           path: dist/*
