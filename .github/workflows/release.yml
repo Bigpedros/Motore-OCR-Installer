@@ -1,0 +1,45 @@
+name: Build and publish installer
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate scripts
+        shell: pwsh
+        run: |
+          node --check src/runtime-server.mjs
+          $null = [scriptblock]::Create((Get-Content src/Install-Dependencies.ps1 -Raw))
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\Motore-OCR-Local-Setup.iss
+          Get-FileHash dist\Motore-OCR-Local-Setup.exe -Algorithm SHA256 | ForEach-Object { $_.Hash + "  Motore-OCR-Local-Setup.exe" } | Set-Content dist\SHA256.txt
+
+      - name: Publish rolling release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete local-ai-latest --cleanup-tag -y 2>$null
+          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale" --notes "Installer Windows per Ollama + OpenCode + OCR Local Runtime." --latest
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Motore-OCR-Local-Setup
+          path: dist/*
