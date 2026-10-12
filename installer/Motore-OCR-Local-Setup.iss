@@ -1,5 +1,5 @@
 #define MyAppName "Motore OCR - AI Locale"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.1.1"
 #define MyAppPublisher "Bigpedros"
 
 [Setup]
@@ -17,15 +17,17 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayName={#MyAppName}
+SetupLogging=yes
 
 [Files]
 Source: "..\src\runtime-server.mjs"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\src\Avvia-OCR-Runtime.cmd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\src\Install-Dependencies.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\src\Configure-Local-AI.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{userstartup}\Motore OCR Local Runtime"; Filename: "{cmd}"; Parameters: "/c ""{app}\Avvia-OCR-Runtime.cmd"""; WorkingDir: "{app}"
+Name: "{userstartup}\Motore OCR Local Runtime"; Filename: "{cmd}"; Parameters: "/d /c ""{app}\Avvia-OCR-Runtime.cmd"""; WorkingDir: "{app}"
+Name: "{userprograms}\Motore OCR\Avvia AI Locale"; Filename: "{cmd}"; Parameters: "/d /c ""{app}\Avvia-OCR-Runtime.cmd"""; WorkingDir: "{app}"
 
 [Run]
-Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\Install-Dependencies.ps1"""; WorkingDir: "{app}"; Flags: waituntilterminated
-Filename: "{cmd}"; Parameters: "/c ""{app}\Avvia-OCR-Runtime.cmd"""; WorkingDir: "{app}"; Flags: postinstall skipifsilent
+Filename: "{cmd}"; Parameters: "/d /c ""{app}\Configure-Local-AI.cmd"""; WorkingDir: "{app}"; StatusMsg: "Configurazione AI locale..."; Flags: waituntilterminated
+Filename: "{cmd}"; Parameters: "/d /c ""{app}\Avvia-OCR-Runtime.cmd"""; WorkingDir: "{app}"; Description: "Avvia Motore OCR AI Locale"; Flags: postinstall skipifsilent nowait
