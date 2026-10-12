@@ -10,11 +10,17 @@ Il repository principale del motore resta privato. Qui vengono pubblicati soltan
 
 ## Installazione
 
-Usa sempre l'ultima release:
+Usa sempre la release **latest** e scarica:
 
 **Motore-OCR-Local-Setup.exe**
 
-L'installer controlla ciò che è già presente e installa solo i componenti mancanti. Se Ollama è già installato, non viene reinstallato. Se è già disponibile almeno un modello compatibile, non ne scarica un altro.
+Versione installer corrente: **0.1.1**.
+
+L'installer controlla ciò che è già presente e installa solo i componenti mancanti tramite strumenti standard Windows (`winget`) e npm. Non usa più il precedente bootstrap PowerShell con `Invoke-Expression`.
+
+Durante un aggiornamento chiude le precedenti istanze in ascolto sulle porte riservate 4097/4098, installa il runtime nuovo, lo riavvia e verifica automaticamente l'endpoint `/health`.
+
+> Nota: il file EXE non è ancora firmato con certificato Authenticode. La firma digitale sarà necessaria per eliminare in modo affidabile gli avvisi di reputazione/SmartScreen su PC che non conoscono ancora l'applicazione.
 
 ## Modelli locali
 
