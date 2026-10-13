@@ -18,9 +18,9 @@ Scarica sempre la release **latest**:
 
 **Motore-OCR-Local-Setup.exe**
 
-Versione installer corrente: **0.1.3**.
+Versione installer corrente: **0.1.4**.
 
-Il setup usa `winget` per Node.js e llama.cpp quando mancanti e scarica una sola volta il modello GGUF (~500 MB). Dopo l'installazione la revisione AI funziona offline.
+Il setup usa `winget` per Node.js e llama.cpp quando mancanti e scarica una sola volta il modello GGUF (~500 MB). Supporta sia il vecchio eseguibile `llama-server` sia il comando recente `llama serve`. Dopo l'installazione la revisione AI funziona offline.
 
 Durante l'aggiornamento vengono chiuse le vecchie istanze sulle porte 4097/4098, quindi anche un eventuale vecchio bridge OpenCode non resta attivo.
 
