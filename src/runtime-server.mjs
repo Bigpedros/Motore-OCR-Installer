@@ -5,7 +5,7 @@ import {basename,join} from 'node:path';
 
 const HOST='127.0.0.1';
 const PORT=4097;
-const RUNTIME_VERSION='0.3.6';
+const RUNTIME_VERSION='0.3.7';
 const LLAMA_HOST='127.0.0.1';
 const LLAMA_PORT=4098;
 const LLAMA_BASE=`http://${LLAMA_HOST}:${LLAMA_PORT}`;
@@ -141,7 +141,7 @@ function promptFor(request){
     'Non inventare testo, coordinate, regioni o fieldId.',
     'Controlla classe documento e anomalie strutturali. Se il deterministico è coerente, confermalo senza aggiungere correzioni.',
     'Schema:',
-    '{"documentClass":"receipt|invoice|contract|book-page|blank-form|filled-form|letter|generic-document|unknown","documentClassConfidence":0.0,"structureCoherent":true,"issues":[],"regionSuggestions":[],"suggestedFillableFieldIds":[],"summary":"..."}',
+    '{"documentClass":"receipt|invoice|contract|book-page|blank-form|filled-form|letter|generic-document|unknown","documentClassConfidence":0.0,"structureCoherent":true,"issues":[],"tokenSuggestions":[{"tokenId":"...","status":"uncertain|error|unreadable","suggestedText":"...","reason":"..."}],"regionSuggestions":[],"suggestedFillableFieldIds":[],"summary":"..."}',
     'INPUT:',
     JSON.stringify(request)
   ].join('\n');
