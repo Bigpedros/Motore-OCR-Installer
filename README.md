@@ -18,7 +18,7 @@ Scarica sempre la release **latest**:
 
 **Motore-OCR-Local-Setup.exe**
 
-Versione installer corrente: **0.1.6**.
+Versione installer corrente: **0.1.7**.
 
 Il setup usa `winget` per Node.js e llama.cpp quando mancanti e scarica una sola volta il modello GGUF (~500 MB). Durante la configurazione mostra 4 fasi ben visibili e una barra di avanzamento reale per il download del modello, con avviso esplicito di non chiudere la finestra. Supporta sia il vecchio eseguibile `llama-server` sia il comando recente `llama serve`, anche quando WinGet non espone subito il comando nel PATH: il runtime cerca direttamente nelle cartelle pacchetto WinGet. Dopo l'installazione la revisione AI funziona offline.
 
@@ -32,7 +32,7 @@ La configurazione runtime è volutamente limitata:
 - contesto 1536 token
 - una sola richiesta alla volta
 - output AI massimo 220 token
-- timeout di revisione 16 secondi
+- timeout di revisione 16 secondi; compatibilità ampliata con llama.cpp senza response_format
 - modello 0.5B quantizzato
 
 L'OCR deterministico continua a funzionare anche se l'AI locale non è installata o non viene avviata.
