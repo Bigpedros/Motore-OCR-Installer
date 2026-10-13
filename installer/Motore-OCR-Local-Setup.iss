@@ -1,5 +1,5 @@
 #define MyAppName "Motore OCR - AI Locale"
-#define MyAppVersion "0.1.9"
+#define MyAppVersion "0.2.0"
 #define MyAppPublisher "Bigpedros"
 
 [Setup]
