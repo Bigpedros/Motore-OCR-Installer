@@ -48,11 +48,18 @@ for /f "delims=" %%I in ('where llama-server 2^>nul') do if not defined LLAMA_CM
 if not defined LLAMA_CMD for /f "delims=" %%I in ('where llama 2^>nul') do if not defined LLAMA_CMD set "LLAMA_CMD=%%I"
 if not defined LLAMA_CMD if exist "%LOCALAPPDATA%\Microsoft\WinGet\Links\llama-server.exe" set "LLAMA_CMD=%LOCALAPPDATA%\Microsoft\WinGet\Links\llama-server.exe"
 if not defined LLAMA_CMD if exist "%LOCALAPPDATA%\Microsoft\WinGet\Links\llama.exe" set "LLAMA_CMD=%LOCALAPPDATA%\Microsoft\WinGet\Links\llama.exe"
-if not defined LLAMA_CMD (
-  call :log "llama.cpp installato ma comando llama/llama-server non trovato."
-  exit /b 5
+if not defined LLAMA_CMD if exist "%LOCALAPPDATA%\Microsoft\WinGet\Packages" (
+  for /r "%LOCALAPPDATA%\Microsoft\WinGet\Packages" %%I in (llama-server.exe) do if not defined LLAMA_CMD set "LLAMA_CMD=%%I"
 )
-call :log "Comando llama.cpp rilevato: %LLAMA_CMD%"
+if not defined LLAMA_CMD if exist "%LOCALAPPDATA%\Microsoft\WinGet\Packages" (
+  for /r "%LOCALAPPDATA%\Microsoft\WinGet\Packages" %%I in (llama.exe) do if not defined LLAMA_CMD set "LLAMA_CMD=%%I"
+)
+if not defined LLAMA_CMD (
+  call :log "llama.cpp risulta installato, ma non trovo l'eseguibile nelle cartelle WinGet."
+  call :log "Il runtime verra comunque avviato per mostrare la diagnosi nel Lab."
+) else (
+  call :log "Comando llama.cpp rilevato: %LLAMA_CMD%"
+)
 
 if not exist "%MODEL_FILE%" (
   call :log "Scarico il modello Qwen2.5 0.5B Q4_K_M (~500 MB)."
@@ -69,23 +76,35 @@ if not exist "%MODEL_FILE%" (
 
 call :log "Avvio OCR Local Runtime 0.3.5."
 call "%~dp0Avvia-OCR-Runtime.cmd"
-timeout /t 4 /nobreak >nul
+timeout /t 6 /nobreak >nul
 
 curl.exe -fsS --max-time 8 http://127.0.0.1:4097/health > "%TEMP%\motore-ocr-health.json" 2>nul
 if errorlevel 1 (
   call :log "Runtime non raggiungibile dopo l'installazione."
+  echo.
+  echo ERRORE: il runtime locale non si e avviato.
+  echo Log: %LOG%
+  pause
   exit /b 7
 )
 
 findstr /C:"\"runtimeVersion\":\"0.3.5\"" "%TEMP%\motore-ocr-health.json" >nul
 if errorlevel 1 (
   call :log "Il runtime in ascolto non e la versione prevista."
+  echo.
+  echo ERRORE: versione runtime non corretta.
+  echo Log: %LOG%
+  pause
   exit /b 8
 )
 
 findstr /C:"\"modelInstalled\":true" "%TEMP%\motore-ocr-health.json" >nul
 if errorlevel 1 (
   call :log "Il modello AI locale non risulta disponibile."
+  echo.
+  echo ERRORE: modello AI locale non disponibile.
+  echo Log: %LOG%
+  pause
   exit /b 9
 )
 
