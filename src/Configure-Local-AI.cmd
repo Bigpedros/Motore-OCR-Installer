@@ -33,22 +33,26 @@ if errorlevel 1 (
 )
 set "PATH=%PATH%;%ProgramFiles%\nodejs;%LOCALAPPDATA%\Microsoft\WinGet\Links"
 
-where llama-server >nul 2>&1
-if errorlevel 1 (
+set "LLAMA_FOUND="
+where llama-server >nul 2>&1 && set "LLAMA_FOUND=1"
+if not defined LLAMA_FOUND where llama >nul 2>&1 && set "LLAMA_FOUND=1"
+if not defined LLAMA_FOUND (
   call :log "llama.cpp non trovato: installazione tramite winget."
   winget install llama.cpp --accept-source-agreements --accept-package-agreements --silent
   if errorlevel 1 exit /b 4
 )
 set "PATH=%PATH%;%LOCALAPPDATA%\Microsoft\WinGet\Links"
 
-set "LLAMA_SERVER="
-for /f "delims=" %%I in ('where llama-server 2^>nul') do if not defined LLAMA_SERVER set "LLAMA_SERVER=%%I"
-if not defined LLAMA_SERVER if exist "%LOCALAPPDATA%\Microsoft\WinGet\Links\llama-server.exe" set "LLAMA_SERVER=%LOCALAPPDATA%\Microsoft\WinGet\Links\llama-server.exe"
-if not defined LLAMA_SERVER (
-  call :log "llama-server non trovato dopo l'installazione."
+set "LLAMA_CMD="
+for /f "delims=" %%I in ('where llama-server 2^>nul') do if not defined LLAMA_CMD set "LLAMA_CMD=%%I"
+if not defined LLAMA_CMD for /f "delims=" %%I in ('where llama 2^>nul') do if not defined LLAMA_CMD set "LLAMA_CMD=%%I"
+if not defined LLAMA_CMD if exist "%LOCALAPPDATA%\Microsoft\WinGet\Links\llama-server.exe" set "LLAMA_CMD=%LOCALAPPDATA%\Microsoft\WinGet\Links\llama-server.exe"
+if not defined LLAMA_CMD if exist "%LOCALAPPDATA%\Microsoft\WinGet\Links\llama.exe" set "LLAMA_CMD=%LOCALAPPDATA%\Microsoft\WinGet\Links\llama.exe"
+if not defined LLAMA_CMD (
+  call :log "llama.cpp installato ma comando llama/llama-server non trovato."
   exit /b 5
 )
-call :log "llama-server: %LLAMA_SERVER%"
+call :log "Comando llama.cpp rilevato: %LLAMA_CMD%"
 
 if not exist "%MODEL_FILE%" (
   call :log "Scarico il modello Qwen2.5 0.5B Q4_K_M (~500 MB)."
