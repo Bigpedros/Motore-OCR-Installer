@@ -47,9 +47,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete local-ai-latest --cleanup-tag -y 2>$null
-          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.1.4" --notes "Installer Windows ultra-leggero: fix avvio llama.cpp per le versioni winget recenti che usano il comando llama serve; Qwen2.5 0.5B GGUF, nessun Ollama/OpenCode." --latest
+          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.1.5" --notes "Installer Windows ultra-leggero: ricerca robusta degli eseguibili llama.cpp dentro le cartelle WinGet, diagnostica persistente in caso di errore; Qwen2.5 0.5B GGUF." --latest
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Motore-OCR-Local-Setup-0.1.4
+          name: Motore-OCR-Local-Setup-0.1.5
           path: dist/*
