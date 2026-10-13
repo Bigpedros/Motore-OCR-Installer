@@ -5,7 +5,7 @@ import {basename,join} from 'node:path';
 
 const HOST='127.0.0.1';
 const PORT=4097;
-const RUNTIME_VERSION='0.3.8';
+const RUNTIME_VERSION='0.3.9';
 const LLAMA_HOST='127.0.0.1';
 const LLAMA_PORT=4098;
 const LLAMA_BASE=`http://${LLAMA_HOST}:${LLAMA_PORT}`;
@@ -93,7 +93,7 @@ async function startLlama(){
       '-m',MODEL_PATH,
       '--host',LLAMA_HOST,
       '--port',String(LLAMA_PORT),
-      '-c','1024',
+      '-c','1536',
       '-t','2',
       '--parallel','1'
     ],{
@@ -166,7 +166,7 @@ async function review(request){
       model:id,
       stream:false,
       temperature:0.1,
-      max_tokens:140,
+      max_tokens:120,
       messages:[{role:'user',content:promptFor(request)}]
     })
   });
@@ -189,7 +189,7 @@ const server=http.createServer(async(req,res)=>{
       ok:true,bridge:true,runtimeVersion:RUNTIME_VERSION,
       llamaCpp:running,modelInstalled:existsSync(MODEL_PATH),
       selectedModel:existsSync(MODEL_PATH)?basename(MODEL_PATH):null,
-      reviewMode:'llama.cpp-light',threads:2,context:1024
+      reviewMode:'llama.cpp-light',threads:2,context:1536
     });
     return;
   }
