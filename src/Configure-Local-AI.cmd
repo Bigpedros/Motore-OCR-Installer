@@ -101,7 +101,7 @@ if not exist "%MODEL_FILE%" (
 )
 
 call :stage 4 "Avvio runtime e verifica finale"
-call :log "Avvio OCR Local Runtime 0.3.6."
+call :log "Avvio OCR Local Runtime 0.3.7."
 call "%~dp0Avvia-OCR-Runtime.cmd"
 timeout /t 6 /nobreak >nul
 
@@ -115,7 +115,7 @@ if errorlevel 1 (
   exit /b 7
 )
 
-findstr /C:"\"runtimeVersion\":\"0.3.6\"" "%TEMP%\motore-ocr-health.json" >nul
+findstr /C:"\"runtimeVersion\":\"0.3.7\"" "%TEMP%\motore-ocr-health.json" >nul
 if errorlevel 1 (
   call :log "Il runtime in ascolto non e la versione prevista."
   echo.
