@@ -75,15 +75,15 @@ if not exist "%MODEL_FILE%" (
 )
 
 call :stage 4 "Avvio runtime e verifica finale"
-call :log "Avvio OCR Local Runtime 0.3.7."
+call :log "Avvio OCR Local Runtime 0.3.8."
 call "%~dp0Avvia-OCR-Runtime.cmd"
 timeout /t 8 /nobreak >nul
 
 curl.exe -fsS --max-time 8 http://127.0.0.1:4097/health > "%TEMP%\motore-ocr-health.json" 2>nul
 if errorlevel 1 call :fail 7 "Runtime locale non raggiungibile dopo l'installazione."
 
-findstr /C:"\"runtimeVersion\":\"0.3.7\"" "%TEMP%\motore-ocr-health.json" >nul
-if errorlevel 1 call :fail 8 "Il runtime in ascolto non e la versione 0.3.7."
+findstr /C:"\"runtimeVersion\":\"0.3.8\"" "%TEMP%\motore-ocr-health.json" >nul
+if errorlevel 1 call :fail 8 "Il runtime in ascolto non e la versione 0.3.8."
 
 findstr /C:"\"modelInstalled\":true" "%TEMP%\motore-ocr-health.json" >nul
 if errorlevel 1 call :fail 9 "Il modello AI locale non risulta disponibile."
@@ -91,10 +91,10 @@ if errorlevel 1 call :fail 9 "Il modello AI locale non risulta disponibile."
 echo.
 echo [####################] 100%%
 echo AI LOCALE PRONTA.
-echo Runtime 0.3.7 verificato su http://127.0.0.1:4097
+echo Runtime 0.3.8 verificato su http://127.0.0.1:4097
 echo Puoi chiudere questa finestra e tornare a OCR Lab.
 echo.
-call :log "Configurazione completata: runtime 0.3.7 + llama.cpp + Qwen 0.5B pronti."
+call :log "Configurazione completata: runtime 0.3.8 + llama.cpp + Qwen 0.5B pronti."
 exit /b 0
 
 :stage
