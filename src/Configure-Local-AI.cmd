@@ -10,10 +10,29 @@ set "LOG=%BASE%\install.log"
 if not exist "%BASE%" mkdir "%BASE%" >nul 2>&1
 if not exist "%MODEL_DIR%" mkdir "%MODEL_DIR%" >nul 2>&1
 
+call :stage 1 "Preparazione e verifica componenti"
 call :log "Avvio configurazione AI locale leggera Motore OCR"
 
 rem Chiude solo le porte riservate a Motore OCR. La 4098 puo contenere la vecchia istanza OpenCode/Ollama bridge.
-call :killport 4097
+call :stage
+cls
+echo ============================================================
+echo          MOTORE OCR - AI LOCALE LEGGERA
+echo ============================================================
+echo.
+if "%~1"=="1" echo [#####---------------] 25%%  Fase 1 di 4
+if "%~1"=="2" echo [##########----------] 50%%  Fase 2 di 4
+if "%~1"=="3" echo [###############-----] 75%%  Fase 3 di 4
+if "%~1"=="4" echo [##################--] 90%%  Fase 4 di 4
+echo.
+echo %~2
+echo.
+echo NON CHIUDERE QUESTA FINESTRA DURANTE LA CONFIGURAZIONE.
+echo ============================================================
+echo.
+exit /b 0
+
+:killport 4097
 call :killport 4098
 
 set "PATH=%PATH%;%ProgramFiles%\nodejs;%LOCALAPPDATA%\Microsoft\WinGet\Links"
@@ -33,6 +52,7 @@ if errorlevel 1 (
 )
 set "PATH=%PATH%;%ProgramFiles%\nodejs;%LOCALAPPDATA%\Microsoft\WinGet\Links"
 
+call :stage 2 "Verifica runtime llama.cpp"
 set "LLAMA_FOUND="
 where llama-server >nul 2>&1 && set "LLAMA_FOUND=1"
 if not defined LLAMA_FOUND where llama >nul 2>&1 && set "LLAMA_FOUND=1"
@@ -61,9 +81,15 @@ if not defined LLAMA_CMD (
   call :log "Comando llama.cpp rilevato: %LLAMA_CMD%"
 )
 
+call :stage 3 "Download modello Qwen2.5 0.5B"
 if not exist "%MODEL_FILE%" (
   call :log "Scarico il modello Qwen2.5 0.5B Q4_K_M (~500 MB)."
-  curl.exe -L --fail --retry 3 --retry-delay 2 -o "%MODEL_FILE%.download" "%MODEL_URL%"
+  echo.
+  echo NON CHIUDERE QUESTA FINESTRA.
+  echo Il download puo richiedere alcuni minuti in base alla connessione.
+  echo La barra seguente mostra l'avanzamento reale del file:
+  echo.
+  curl.exe -L --fail --retry 3 --retry-delay 2 --progress-bar -o "%MODEL_FILE%.download" "%MODEL_URL%"
   if errorlevel 1 (
     del /q "%MODEL_FILE%.download" >nul 2>&1
     call :log "Download modello non riuscito."
@@ -74,6 +100,7 @@ if not exist "%MODEL_FILE%" (
   call :log "Modello locale gia presente."
 )
 
+call :stage 4 "Avvio runtime e verifica finale"
 call :log "Avvio OCR Local Runtime 0.3.5."
 call "%~dp0Avvia-OCR-Runtime.cmd"
 timeout /t 6 /nobreak >nul
@@ -108,6 +135,11 @@ if errorlevel 1 (
   exit /b 9
 )
 
+echo.
+echo [####################] 100%%
+echo AI LOCALE PRONTA.
+echo Puoi chiudere questa finestra e tornare a OCR Lab.
+echo.
 call :log "Configurazione completata: llama.cpp + Qwen 0.5B + Runtime locale pronti."
 exit /b 0
 
