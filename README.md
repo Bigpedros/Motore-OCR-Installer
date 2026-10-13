@@ -18,7 +18,7 @@ Scarica sempre la release **latest**:
 
 **Motore-OCR-Local-Setup.exe**
 
-Versione installer corrente: **0.1.8**.
+Versione installer corrente: **0.1.9**.
 
 Il setup usa `winget` per Node.js e llama.cpp quando mancanti e scarica una sola volta il modello GGUF (~500 MB). Durante la configurazione mostra 4 fasi ben visibili e una barra di avanzamento reale per il download del modello, con avviso esplicito di non chiudere la finestra. Supporta sia il vecchio eseguibile `llama-server` sia il comando recente `llama serve`, anche quando WinGet non espone subito il comando nel PATH: il runtime cerca direttamente nelle cartelle pacchetto WinGet. Dopo l'installazione la revisione AI funziona offline.
 
@@ -45,3 +45,6 @@ Documenti e revisione rimangono sul PC. La connessione Internet serve soltanto p
 
 
 In caso di errore il configuratore lascia visibile il messaggio e indica il log persistente in `%LOCALAPPDATA%\MotoreOCR\install.log`.
+
+
+La 0.1.9 corregge il flusso batch del configuratore: le fasi vengono ora eseguite realmente in sequenza, i processi precedenti su 4097/4098 vengono chiusi e il setup termina solo dopo aver verificato `/health` del runtime 0.3.7.
