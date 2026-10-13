@@ -47,9 +47,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete local-ai-latest --cleanup-tag -y 2>$null
-          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.1.8" --notes "Runtime 0.3.7: revisione AI token-level per ricostruzione digitale controllata; barra di avanzamento e diagnostica persistente." --latest
+          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.1.9" --notes "Runtime 0.3.7: corregge il flusso del configuratore, arresta davvero i runtime precedenti e verifica la versione avviata prima di completare." --latest
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Motore-OCR-Local-Setup-0.1.8
+          name: Motore-OCR-Local-Setup-0.1.9
           path: dist/*
