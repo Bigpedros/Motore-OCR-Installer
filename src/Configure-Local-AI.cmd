@@ -46,17 +46,6 @@ if errorlevel 1 (
   if errorlevel 1 exit /b 4
 )
 
-set "PATH=%PATH%;%ProgramFiles%\nodejs;%APPDATA%\npm"
-where opencode >nul 2>&1
-if errorlevel 1 (
-  call :log "OpenCode non trovato: installazione tramite npm."
-  if exist "%ProgramFiles%\nodejs\npm.cmd" (
-    call "%ProgramFiles%\nodejs\npm.cmd" install -g opencode-ai@1.19.0
-  ) else (
-    call npm install -g opencode-ai@1.19.0
-  )
-  if errorlevel 1 exit /b 5
-)
 
 rem Avvia Ollama solo se l'API non risponde.
 curl.exe -fsS --max-time 3 http://127.0.0.1:11434/api/tags >nul 2>&1
@@ -94,13 +83,13 @@ if errorlevel 1 (
   exit /b 7
 )
 
-findstr /C:"\"runtimeVersion\":\"0.3.3\"" "%TEMP%\motore-ocr-health.json" >nul
+findstr /C:"\"runtimeVersion\":\"0.3.4\"" "%TEMP%\motore-ocr-health.json" >nul
 if errorlevel 1 (
   call :log "Il runtime in ascolto non e la versione prevista."
   exit /b 8
 )
 
-call :log "Configurazione completata: AI locale pronta."
+call :log "Configurazione completata: Ollama + Runtime locale pronti."
 exit /b 0
 
 :killport
