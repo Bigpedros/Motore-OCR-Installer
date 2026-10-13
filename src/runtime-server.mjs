@@ -5,7 +5,7 @@ import {basename,join} from 'node:path';
 
 const HOST='127.0.0.1';
 const PORT=4097;
-const RUNTIME_VERSION='0.3.5';
+const RUNTIME_VERSION='0.3.6';
 const LLAMA_HOST='127.0.0.1';
 const LLAMA_PORT=4098;
 const LLAMA_BASE=`http://${LLAMA_HOST}:${LLAMA_PORT}`;
@@ -167,11 +167,13 @@ async function review(request){
       stream:false,
       temperature:0.1,
       max_tokens:220,
-      response_format:{type:'json_object'},
       messages:[{role:'user',content:promptFor(request)}]
     })
   });
-  if(!response.ok)throw new Error(`llama.cpp HTTP ${response.status}`);
+  if(!response.ok){
+    const detail=await response.text().catch(()=>'');
+    throw new Error(`llama.cpp HTTP ${response.status}${detail?`: ${detail.slice(0,300)}`:''}`);
+  }
   const data=await response.json();
   return{model:basename(MODEL_PATH),result:parseModelJson(data?.choices?.[0]?.message?.content)};
 }
