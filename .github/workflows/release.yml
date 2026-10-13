@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: motore-ocr-installer-release
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: windows-latest
