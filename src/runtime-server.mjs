@@ -16,24 +16,36 @@ let childProcess=null;
 
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 
-function findLlamaServer(){
-  if(process.env.MOTORE_OCR_LLAMA_SERVER&&existsSync(process.env.MOTORE_OCR_LLAMA_SERVER))return process.env.MOTORE_OCR_LLAMA_SERVER;
+function findLlamaCommand(){
+  if(process.env.MOTORE_OCR_LLAMA_SERVER&&existsSync(process.env.MOTORE_OCR_LLAMA_SERVER))return{command:process.env.MOTORE_OCR_LLAMA_SERVER,prefix:[]};
+  const candidates=[];
   if(process.platform==='win32'){
-    const found=spawnSync('where',['llama-server'],{encoding:'utf8',windowsHide:true});
-    if(found.status===0){
-      const first=(found.stdout||'').split(/\r?\n/).map(v=>v.trim()).find(Boolean);
-      if(first)return first;
+    for(const name of ['llama-server','llama']){
+      const found=spawnSync('where',[name],{encoding:'utf8',windowsHide:true});
+      if(found.status===0){
+        const first=(found.stdout||'').split(/\r?\n/).map(v=>v.trim()).find(Boolean);
+        if(first)candidates.push({command:first,prefix:name==='llama'?['serve']:[]});
+      }
     }
-    const candidates=[
-      process.env.LOCALAPPDATA&&join(process.env.LOCALAPPDATA,'Microsoft','WinGet','Links','llama-server.exe'),
-      process.env.LOCALAPPDATA&&join(process.env.LOCALAPPDATA,'Programs','llama.cpp','llama-server.exe')
-    ].filter(Boolean);
-    for(const candidate of candidates)if(existsSync(candidate))return candidate;
-    return'';
+    const local=process.env.LOCALAPPDATA;
+    if(local){
+      candidates.push(
+        {command:join(local,'Microsoft','WinGet','Links','llama-server.exe'),prefix:[]},
+        {command:join(local,'Microsoft','WinGet','Links','llama.exe'),prefix:['serve']},
+        {command:join(local,'Programs','llama.cpp','llama-server.exe'),prefix:[]},
+        {command:join(local,'Programs','llama.cpp','llama.exe'),prefix:['serve']}
+      );
+    }
+  }else{
+    for(const name of ['llama-server','llama']){
+      const found=spawnSync('which',[name],{encoding:'utf8'});
+      if(found.status===0){
+        const first=(found.stdout||'').split(/\r?\n/).map(v=>v.trim()).find(Boolean);
+        if(first)candidates.push({command:first,prefix:name==='llama'?['serve']:[]});
+      }
+    }
   }
-  const found=spawnSync('which',['llama-server'],{encoding:'utf8'});
-  if(found.status===0)return(found.stdout||'').split(/\r?\n/).map(v=>v.trim()).find(Boolean)||'';
-  return'';
+  return candidates.find(item=>existsSync(item.command))??null;
 }
 
 async function llamaAlive(){
@@ -55,10 +67,11 @@ async function modelId(){
 async function startLlama(){
   if(await llamaAlive())return{ok:true,alreadyRunning:true,model:basename(MODEL_PATH)};
   if(!existsSync(MODEL_PATH))return{ok:false,error:`Modello AI non trovato: ${MODEL_PATH}`};
-  const command=findLlamaServer();
-  if(!command)return{ok:false,error:'llama-server non trovato. Reinstalla “AI locale leggera”.'};
+  const executable=findLlamaCommand();
+  if(!executable)return{ok:false,error:'llama.cpp non trovato. Reinstalla “AI locale leggera”.'};
   try{
-    childProcess=spawn(command,[
+    childProcess=spawn(executable.command,[
+      ...executable.prefix,
       '-m',MODEL_PATH,
       '--host',LLAMA_HOST,
       '--port',String(LLAMA_PORT),
@@ -70,6 +83,7 @@ async function startLlama(){
       stdio:['ignore','pipe','pipe'],
       env:{...process.env}
     });
+    console.log(`[llama.cpp] comando: ${executable.command} ${executable.prefix.join(' ')}`);
     childProcess.stdout?.on('data',data=>process.stdout.write(`[llama.cpp] ${data}`));
     childProcess.stderr?.on('data',data=>process.stderr.write(`[llama.cpp] ${data}`));
     childProcess.on('error',error=>console.error('[llama.cpp] errore:',error.message));
