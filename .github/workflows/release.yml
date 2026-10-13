@@ -19,10 +19,11 @@ jobs:
         run: |
           node --check src/runtime-server.mjs
           cmd /d /c "call src\Avvia-OCR-Runtime.cmd >nul 2>&1 & exit /b 0"
-          findstr /C:"winget install --id Ollama.Ollama" src\Configure-Local-AI.cmd
+          findstr /C:"winget install llama.cpp" src\Configure-Local-AI.cmd
           findstr /C:"taskkill /PID" src\Configure-Local-AI.cmd
           findstr /C:"runtimeVersion" src\Configure-Local-AI.cmd
-          if (Select-String -Path src\Configure-Local-AI.cmd -Pattern "npm install -g opencode" -Quiet) { throw "OpenCode must not be installed by the lightweight runtime." }
+          if (Select-String -Path src\Configure-Local-AI.cmd -Pattern "Ollama.Ollama|npm install -g opencode" -Quiet) { throw "Legacy Ollama/OpenCode installers must not be packaged." }
+          findstr /C:"qwen2.5-0.5b-instruct-q4_k_m.gguf" src\Configure-Local-AI.cmd
           if (Test-Path src\Install-Dependencies.ps1) { throw "Legacy PowerShell bootstrap must not be packaged." }
 
       - name: Install Inno Setup
@@ -42,9 +43,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete local-ai-latest --cleanup-tag -y 2>$null
-          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.1.2" --notes "Installer Windows leggero: revisione AI diretta via Ollama, OpenCode non viene più avviato né installato; timeout e contesto limitati per ridurre il carico sul PC." --latest
+          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.1.3" --notes "Installer Windows ultra-leggero: llama.cpp + Qwen2.5 0.5B GGUF; nessun Ollama/OpenCode; revisione manuale con 2 thread, contesto 1536 e timeout protettivo." --latest
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Motore-OCR-Local-Setup-0.1.2
+          name: Motore-OCR-Local-Setup-0.1.3
           path: dist/*
