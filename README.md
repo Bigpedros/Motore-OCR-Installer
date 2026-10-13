@@ -1,38 +1,44 @@
-# Motore OCR — Installer AI locale
+# Motore OCR — Installer AI locale leggera
 
-Repository pubblico di distribuzione per il componente locale di **MOTORE OCR**.
+Repository pubblico di distribuzione per il componente locale opzionale di **MOTORE OCR**.
 
-Il repository principale del motore resta privato. Qui vengono pubblicati soltanto installer, runtime locale e script necessari a collegare la web app a:
+Il repository principale resta privato. L'AI locale non è necessaria per l'OCR deterministico: serve soltanto come revisore manuale e leggero.
 
-- Ollama su `127.0.0.1:11434`
+## Componenti
+
 - OCR Local Runtime su `127.0.0.1:4097`
+- `llama-server` (llama.cpp) su `127.0.0.1:4098`
+- modello `Qwen2.5-0.5B-Instruct-GGUF Q4_K_M` in `%LOCALAPPDATA%\MotoreOCR\models`
+
+**Ollama e OpenCode non fanno più parte del percorso Motore OCR.**
 
 ## Installazione
 
-Usa sempre la release **latest** e scarica:
+Scarica sempre la release **latest**:
 
 **Motore-OCR-Local-Setup.exe**
 
-Versione installer corrente: **0.1.2**.
+Versione installer corrente: **0.1.3**.
 
-L'installer controlla ciò che è già presente e installa solo i componenti mancanti tramite strumenti standard Windows (`winget`). Non usa più il precedente bootstrap PowerShell con `Invoke-Expression`.
+Il setup usa `winget` per Node.js e llama.cpp quando mancanti e scarica una sola volta il modello GGUF (~500 MB). Dopo l'installazione la revisione AI funziona offline.
 
-Durante un aggiornamento chiude il runtime precedente e anche l’eventuale vecchia istanza OpenCode sulla porta 4098, installa il runtime nuovo, lo riavvia e verifica automaticamente l'endpoint `/health`.
+Durante l'aggiornamento vengono chiuse le vecchie istanze sulle porte 4097/4098, quindi anche un eventuale vecchio bridge OpenCode non resta attivo.
 
-> Nota: il file EXE non è ancora firmato con certificato Authenticode. La firma digitale sarà necessaria per eliminare in modo affidabile gli avvisi di reputazione/SmartScreen su PC che non conoscono ancora l'applicazione.
+## Profilo risorse
 
-## Modelli locali
+La configurazione runtime è volutamente limitata:
 
-Ordine di preferenza del runtime:
+- 2 thread CPU
+- contesto 1536 token
+- una sola richiesta alla volta
+- output AI massimo 220 token
+- timeout di revisione 16 secondi
+- modello 0.5B quantizzato
 
-1. `qwen3:*`
-2. `assistente-corso:*`
-3. `llama3.2:3b`
-4. altri `llama3.2:*`
-5. primo modello Ollama disponibile
-
-Se non è presente alcun modello compatibile, il setup scarica `qwen3:1.7B`.
+L'OCR deterministico continua a funzionare anche se l'AI locale non è installata o non viene avviata.
 
 ## Privacy
 
-La revisione AI prevista da MOTORE OCR utilizza direttamente Ollama, senza OpenCode nel percorso di esecuzione. Il runtime limita contesto, output e tempo massimo della revisione per evitare di saturare il PC. I documenti OCR non devono essere inviati a provider cloud per questa funzione.
+Documenti e revisione rimangono sul PC. La connessione Internet serve soltanto per installazione/aggiornamento e per il download iniziale del modello. Dopo il download il runtime può funzionare offline.
+
+> Nota: l'EXE non è ancora firmato con certificato Authenticode; Windows può quindi mostrare avvisi di reputazione/SmartScreen.
