@@ -1,6 +1,6 @@
 import http from 'node:http';
 import {spawn,spawnSync} from 'node:child_process';
-import {existsSync} from 'node:fs';
+import {existsSync,readdirSync} from 'node:fs';
 import {basename,join} from 'node:path';
 
 const HOST='127.0.0.1';
@@ -45,7 +45,25 @@ function findLlamaCommand(){
       }
     }
   }
-  return candidates.find(item=>existsSync(item.command))??null;
+  const direct=candidates.find(item=>existsSync(item.command));
+  if(direct)return direct;
+  if(process.platform==='win32'&&process.env.LOCALAPPDATA){
+    const wingetPackages=join(process.env.LOCALAPPDATA,'Microsoft','WinGet','Packages');
+    if(existsSync(wingetPackages)){
+      try{
+        for(const entry of readdirSync(wingetPackages,{recursive:true,withFileTypes:true})){
+          if(!entry.isFile())continue;
+          const lower=entry.name.toLowerCase();
+          if(lower!=='llama-server.exe'&&lower!=='llama.exe')continue;
+          const command=join(entry.parentPath??entry.path,entry.name);
+          if(existsSync(command))return{command,prefix:lower==='llama.exe'?['serve']:[]};
+        }
+      }catch(error){
+        console.warn('[llama.cpp] ricerca WinGet fallita:',error instanceof Error?error.message:String(error));
+      }
+    }
+  }
+  return null;
 }
 
 async function llamaAlive(){
