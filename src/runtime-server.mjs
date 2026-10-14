@@ -5,7 +5,7 @@ import {basename,join} from 'node:path';
 
 const HOST='127.0.0.1';
 const PORT=4097;
-const RUNTIME_VERSION='0.3.9';
+const RUNTIME_VERSION='0.4.0';
 const LLAMA_HOST='127.0.0.1';
 const LLAMA_PORT=4098;
 const LLAMA_BASE=`http://${LLAMA_HOST}:${LLAMA_PORT}`;
@@ -13,8 +13,23 @@ const MODEL_FILE='qwen2.5-0.5b-instruct-q4_k_m.gguf';
 const BASE=process.env.LOCALAPPDATA?join(process.env.LOCALAPPDATA,'MotoreOCR'):'.';
 const MODEL_PATH=process.env.MOTORE_OCR_MODEL||join(BASE,'models',MODEL_FILE);
 let childProcess=null;
+let idleTimer=null;
+const IDLE_SHUTDOWN_MS=90000;
 
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+function clearIdleTimer(){if(idleTimer){clearTimeout(idleTimer);idleTimer=null;}}
+function stopLlama(){
+  clearIdleTimer();
+  if(!childProcess)return;
+  const child=childProcess;
+  childProcess=null;
+  try{child.kill();}catch{}
+}
+function scheduleIdleShutdown(){
+  clearIdleTimer();
+  if(!childProcess)return;
+  idleTimer=setTimeout(()=>stopLlama(),IDLE_SHUTDOWN_MS);
+}
 
 function findLlamaCommand(){
   if(process.env.MOTORE_OCR_LLAMA_SERVER&&existsSync(process.env.MOTORE_OCR_LLAMA_SERVER))return{command:process.env.MOTORE_OCR_LLAMA_SERVER,prefix:[]};
@@ -83,7 +98,11 @@ async function modelId(){
 }
 
 async function startLlama(){
-  if(await llamaAlive())return{ok:true,alreadyRunning:true,model:basename(MODEL_PATH)};
+  clearIdleTimer();
+  if(await llamaAlive()){
+    scheduleIdleShutdown();
+    return{ok:true,alreadyRunning:true,model:basename(MODEL_PATH)};
+  }
   if(!existsSync(MODEL_PATH))return{ok:false,error:`Modello AI non trovato: ${MODEL_PATH}`};
   const executable=findLlamaCommand();
   if(!executable)return{ok:false,error:'llama.cpp non trovato. Reinstalla “AI locale leggera”.'};
@@ -98,19 +117,21 @@ async function startLlama(){
       '--parallel','1'
     ],{
       windowsHide:true,
-      stdio:['ignore','pipe','pipe'],
+      stdio:'ignore',
       env:{...process.env}
     });
     console.log(`[llama.cpp] comando: ${executable.command} ${executable.prefix.join(' ')}`);
-    childProcess.stdout?.on('data',data=>process.stdout.write(`[llama.cpp] ${data}`));
-    childProcess.stderr?.on('data',data=>process.stderr.write(`[llama.cpp] ${data}`));
+
     childProcess.on('error',error=>console.error('[llama.cpp] errore:',error.message));
     childProcess.on('exit',code=>{console.log('[llama.cpp] terminato con codice',code);childProcess=null;});
   }catch(error){
     return{ok:false,error:error instanceof Error?error.message:String(error)};
   }
   for(let attempt=0;attempt<30;attempt++){
-    if(await llamaAlive())return{ok:true,alreadyRunning:false,model:basename(MODEL_PATH)};
+    if(await llamaAlive()){
+      scheduleIdleShutdown();
+      return{ok:true,alreadyRunning:false,model:basename(MODEL_PATH)};
+    }
     await sleep(250);
   }
   return{ok:false,error:'llama-server non ha risposto entro 7,5 secondi.'};
@@ -140,8 +161,9 @@ function promptFor(request){
     'Revisore OCR locale. JSON valido e conciso.',
     'Non inventare testo, coordinate, regioni o fieldId.',
     'Valuta SOLO i token forniti e il loro contesto. Suggerisci correzioni soltanto quando plausibili; altrimenti segnala incertezza.',
-    'Schema:',
-    '{"documentClass":"receipt|invoice|contract|book-page|blank-form|filled-form|letter|generic-document|unknown","documentClassConfidence":0.0,"structureCoherent":true,"issues":[],"tokenSuggestions":[],"regionSuggestions":[],"suggestedFillableFieldIds":[],"summary":""}',
+    'Rispondi SOLO con un piccolo oggetto JSON. Ometti gli array vuoti non necessari.',
+    'Schema minimo:',
+    '{"documentClass":"generic-document","documentClassConfidence":0.8,"structureCoherent":true,"issues":[],"tokenSuggestions":[],"summary":""}',
     'INPUT:',
     JSON.stringify(request)
   ].join('\n');
@@ -166,7 +188,7 @@ async function review(request){
       model:id,
       stream:false,
       temperature:0.1,
-      max_tokens:120,
+      max_tokens:160,
       messages:[{role:'user',content:promptFor(request)}]
     })
   });
@@ -175,6 +197,7 @@ async function review(request){
     throw new Error(`llama.cpp HTTP ${response.status}${detail?`: ${detail.slice(0,300)}`:''}`);
   }
   const data=await response.json();
+  scheduleIdleShutdown();
   return{model:basename(MODEL_PATH),result:parseModelJson(data?.choices?.[0]?.message?.content)};
 }
 
@@ -189,7 +212,7 @@ const server=http.createServer(async(req,res)=>{
       ok:true,bridge:true,runtimeVersion:RUNTIME_VERSION,
       llamaCpp:running,modelInstalled:existsSync(MODEL_PATH),
       selectedModel:existsSync(MODEL_PATH)?basename(MODEL_PATH):null,
-      reviewMode:'llama.cpp-light',threads:2,context:1536
+      reviewMode:'llama.cpp-on-demand',threads:2,context:1536,onDemand:true,idleShutdownMs:IDLE_SHUTDOWN_MS
     });
     return;
   }
@@ -212,11 +235,10 @@ const server=http.createServer(async(req,res)=>{
 });
 
 server.on('error',error=>{console.error('OCR Local Runtime non avviato:',error.message);process.exitCode=1;});
-server.listen(PORT,HOST,async()=>{
+server.listen(PORT,HOST,()=>{
   console.log(`OCR Local Runtime ${RUNTIME_VERSION} attivo su http://${HOST}:${PORT}`);
-  console.log(`AI leggera: llama.cpp su ${LLAMA_BASE}`);
+  console.log('AI locale on-demand: il modello viene caricato solo quando serve.');
   console.log(`Modello: ${MODEL_PATH}`);
-  const result=await startLlama();
-  if(result.ok)console.log('AI locale leggera pronta.');
-  else console.log('AI locale non avviata:',result.error);
 });
+process.on('SIGTERM',()=>{stopLlama();server.close();});
+process.on('SIGINT',()=>{stopLlama();server.close(()=>process.exit(0));});
