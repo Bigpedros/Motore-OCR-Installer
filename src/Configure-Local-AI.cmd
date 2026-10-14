@@ -83,6 +83,15 @@ if not exist "%MODEL_FILE%" (
 )
 
 call :stage 4 "Avvio runtime e verifica finale"
+
+set "WSCRIPT_EXE=%WINDIR%\System32\wscript.exe"
+set "HIDDEN_LAUNCHER=%~dp0Avvia-OCR-Runtime-Nascosto.vbs"
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "MotoreOCRLocalRuntime" /t REG_SZ /d ""%WSCRIPT_EXE%" "%HIDDEN_LAUNCHER%"" /f >nul
+if errorlevel 1 call :fail 10 "Impossibile registrare l'avvio automatico del runtime AI."
+reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "MotoreOCRLocalRuntime" >nul 2>&1
+if errorlevel 1 call :fail 11 "Avvio automatico del runtime AI non verificato."
+call :log "Avvio automatico registrato: %WSCRIPT_EXE% %HIDDEN_LAUNCHER%"
+
 call :log "Avvio OCR Local Runtime 0.4.0."
 wscript.exe "%~dp0Avvia-OCR-Runtime-Nascosto.vbs"
 timeout /t 2 /nobreak >nul
