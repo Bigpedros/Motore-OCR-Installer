@@ -51,9 +51,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete local-ai-latest --cleanup-tag -y 2>$null
-          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.3.0" --notes "Runtime 0.4.0: bridge invisibile in background, AI Qwen 0.5B caricata on-demand e arrestata dopo 90 secondi di inattività." --latest
+          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.3.1" --notes "Runtime 0.4.0: bridge invisibile in background, AI Qwen 0.5B caricata on-demand e arrestata dopo 90 secondi di inattività." --latest
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Motore-OCR-Local-Setup-0.3.0
+          name: Motore-OCR-Local-Setup-0.3.1
           path: dist/*
