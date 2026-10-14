@@ -32,6 +32,10 @@ jobs:
           findstr /C:"runtimeVersion" src\Configure-Local-AI.cmd
           if (Select-String -Path src\Configure-Local-AI.cmd -Pattern "Ollama.Ollama|npm install -g opencode" -Quiet) { throw "Legacy Ollama/OpenCode installers must not be packaged." }
           findstr /C:"qwen2.5-0.5b-instruct-q4_k_m.gguf" src\Configure-Local-AI.cmd
+          findstr /C:"Avvio automatico disabilitato." src\Configure-Local-AI.cmd
+          findstr /C:"{userdesktop}\\Avvia AI Motore OCR" installer\Motore-OCR-Local-Setup.iss
+          if (Select-String -Path src\Configure-Local-AI.cmd -Pattern 'reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"' -Quiet) { throw "Automatic HKCU runtime registration must not be present." }
+          if (Select-String -Path installer\Motore-OCR-Local-Setup.iss -Pattern 'Filename: "{sys}\\wscript.exe".*postinstall' -Quiet) { throw "Runtime must not auto-launch after install." }
           if (Test-Path src\Install-Dependencies.ps1) { throw "Legacy PowerShell bootstrap must not be packaged." }
 
       - name: Install Inno Setup
@@ -51,9 +55,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete local-ai-latest --cleanup-tag -y 2>$null
-          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.3.4" --notes "Runtime 0.4.0: bridge invisibile con percorso Node persistito; avvio automatico registrato e verificato esplicitamente in HKCU; AI Qwen 0.5B caricata on-demand e arrestata dopo 90 secondi di inattività." --latest
+          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.3.5" --notes "Runtime 0.4.0: attivazione manuale tramite collegamento Desktop/Menu Start; nessun avvio automatico; AI Qwen 0.5B caricata on-demand e arrestata dopo 90 secondi di inattività." --latest
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Motore-OCR-Local-Setup-0.3.4
+          name: Motore-OCR-Local-Setup-0.3.5
           path: dist/*
