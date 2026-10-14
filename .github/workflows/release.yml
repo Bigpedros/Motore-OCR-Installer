@@ -27,6 +27,8 @@ jobs:
           findstr /C:"0.4.0" src\runtime-server.mjs
           findstr /C:"llama.cpp-on-demand" src\runtime-server.mjs
           findstr /C:"IDLE_SHUTDOWN_MS=90000" src\runtime-server.mjs
+          findstr /C:"response_format:{type:'json_object'}" src\runtime-server.mjs
+          findstr /C:"max_tokens:320" src\runtime-server.mjs
           findstr /C:"winget install llama.cpp" src\Configure-Local-AI.cmd
           findstr /C:"taskkill /PID" src\Configure-Local-AI.cmd
           findstr /C:"runtimeVersion" src\Configure-Local-AI.cmd
@@ -56,9 +58,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete local-ai-latest --cleanup-tag -y 2>$null
-          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.3.6" --notes "Runtime 0.4.0: attivazione manuale tramite collegamento Desktop/Menu Start e protocollo motoreocr-ai://; nessun avvio automatico; AI Qwen 0.5B caricata on-demand e arrestata dopo 90 secondi di inattività." --latest
+          gh release create local-ai-latest dist\Motore-OCR-Local-Setup.exe dist\SHA256.txt --title "Motore OCR AI Locale 0.3.7" --notes "Runtime 0.4.0 (installer 0.3.7): attivazione manuale tramite collegamento Desktop/Menu Start e protocollo motoreocr-ai://; nessun avvio automatico; risposte AI vincolate a JSON completo con budget di output aumentato; Qwen 0.5B caricata on-demand e arrestata dopo 90 secondi di inattività." --latest
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Motore-OCR-Local-Setup-0.3.6
+          name: Motore-OCR-Local-Setup-0.3.7
           path: dist/*
