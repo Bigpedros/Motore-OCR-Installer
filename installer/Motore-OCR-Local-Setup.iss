@@ -1,5 +1,5 @@
 #define MyAppName "Motore OCR - AI Locale"
-#define MyAppVersion "0.2.1"
+#define MyAppVersion "0.3.0"
 #define MyAppPublisher "Bigpedros"
 
 [Setup]
@@ -22,12 +22,13 @@ SetupLogging=yes
 [Files]
 Source: "..\src\runtime-server.mjs"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\src\Avvia-OCR-Runtime.cmd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\src\Avvia-OCR-Runtime-Nascosto.vbs"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\src\Configure-Local-AI.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{userstartup}\Motore OCR Local Runtime"; Filename: "{cmd}"; Parameters: "/d /c ""{app}\Avvia-OCR-Runtime.cmd"""; WorkingDir: "{app}"
-Name: "{userprograms}\Motore OCR\Avvia AI Locale"; Filename: "{cmd}"; Parameters: "/d /c ""{app}\Avvia-OCR-Runtime.cmd"""; WorkingDir: "{app}"
+Name: "{userstartup}\Motore OCR Local Runtime"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\Avvia-OCR-Runtime-Nascosto.vbs"""; WorkingDir: "{app}"
+Name: "{userprograms}\Motore OCR\Avvia AI Locale"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\Avvia-OCR-Runtime-Nascosto.vbs"""; WorkingDir: "{app}"
 
 [Run]
 Filename: "{cmd}"; Parameters: "/d /c ""{app}\Configure-Local-AI.cmd"""; WorkingDir: "{app}"; StatusMsg: "Configurazione AI locale..."; Flags: waituntilterminated
-Filename: "{cmd}"; Parameters: "/d /c ""{app}\Avvia-OCR-Runtime.cmd"""; WorkingDir: "{app}"; Description: "Avvia Motore OCR AI Locale"; Flags: postinstall skipifsilent nowait
+Filename: "{sys}\wscript.exe"; Parameters: """{app}\Avvia-OCR-Runtime-Nascosto.vbs"""; WorkingDir: "{app}"; Description: "Avvia Motore OCR AI Locale"; Flags: postinstall skipifsilent nowait
