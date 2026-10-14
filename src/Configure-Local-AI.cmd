@@ -82,46 +82,26 @@ if not exist "%MODEL_FILE%" (
   call :log "Modello locale gia presente."
 )
 
-call :stage 4 "Avvio runtime e verifica finale"
+call :stage 4 "Verifica finale installazione"
+call :log "Configurazione completata: runtime 0.4.0 + llama.cpp + Qwen 0.5B installati."
 
-set "WSCRIPT_EXE=%WINDIR%\System32\wscript.exe"
-set "HIDDEN_LAUNCHER=%~dp0Avvia-OCR-Runtime-Nascosto.vbs"
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "MotoreOCRLocalRuntime" /t REG_SZ /d ""%WSCRIPT_EXE%" "%HIDDEN_LAUNCHER%"" /f >nul
-if errorlevel 1 call :fail 10 "Impossibile registrare l'avvio automatico del runtime AI."
-reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "MotoreOCRLocalRuntime" >nul 2>&1
-if errorlevel 1 call :fail 11 "Avvio automatico del runtime AI non verificato."
-call :log "Avvio automatico registrato: %WSCRIPT_EXE% %HIDDEN_LAUNCHER%"
-
-call :log "Avvio OCR Local Runtime 0.4.0."
-wscript.exe "%~dp0Avvia-OCR-Runtime-Nascosto.vbs"
-timeout /t 2 /nobreak >nul
-
-set "RUNTIME_OK="
-for /l %%R in (1,1,10) do (
-  if not defined RUNTIME_OK (
-    curl.exe -fsS --max-time 2 http://127.0.0.1:4097/health > "%TEMP%\motore-ocr-health.json" 2>nul
-    if not errorlevel 1 (
-      set "RUNTIME_OK=1"
-    ) else (
-      timeout /t 1 /nobreak >nul
-    )
-  )
-)
-if not defined RUNTIME_OK call :fail 7 "Runtime locale non raggiungibile dopo l'installazione."
-
-findstr /C:"\"runtimeVersion\":\"0.4.0\"" "%TEMP%\motore-ocr-health.json" >nul
-if errorlevel 1 call :fail 8 "Il runtime in ascolto non e la versione 0.4.0."
-
-findstr /C:"\"modelInstalled\":true" "%TEMP%\motore-ocr-health.json" >nul
-if errorlevel 1 call :fail 9 "Il modello AI locale non risulta disponibile."
+if not exist "%~dp0Avvia-OCR-Runtime-Nascosto.vbs" call :fail 7 "Launcher manuale AI non trovato."
+if not exist "%~dp0runtime-server.mjs" call :fail 8 "Runtime locale non trovato."
+if not exist "%MODEL_FILE%" call :fail 9 "Il modello AI locale non risulta disponibile."
 
 echo.
 echo [####################] 100%%
-echo AI LOCALE PRONTA.
-echo Runtime 0.4.0 verificato su http://127.0.0.1:4097
-echo Puoi chiudere questa finestra e tornare a OCR Lab.
+echo AI LOCALE INSTALLATA.
 echo.
-call :log "Configurazione completata: runtime 0.4.0 + llama.cpp + Qwen 0.5B pronti."
+echo Avvio automatico disabilitato.
+echo Per attivare il runtime usa il collegamento:
+echo   "Avvia AI Motore OCR"
+echo creato sul Desktop oppure nel menu Start.
+echo.
+echo Dopo l'avvio, OCR Lab raggiungera il bridge su:
+echo   http://127.0.0.1:4097
+echo.
+call :log "Installazione pronta per avvio manuale tramite collegamento Desktop/Menu Start."
 exit /b 0
 
 :stage
