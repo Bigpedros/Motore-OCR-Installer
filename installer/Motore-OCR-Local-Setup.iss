@@ -1,5 +1,5 @@
 #define MyAppName "Motore OCR - AI Locale"
-#define MyAppVersion "0.3.4"
+#define MyAppVersion "0.3.5"
 #define MyAppPublisher "Bigpedros"
 
 [Setup]
@@ -26,12 +26,14 @@ Source: "..\src\Avvia-OCR-Runtime-Nascosto.vbs"; DestDir: "{app}"; Flags: ignore
 Source: "..\src\Configure-Local-AI.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{userstartup}\Motore OCR Local Runtime"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\Avvia-OCR-Runtime-Nascosto.vbs"""; WorkingDir: "{app}"
+Name: "{userdesktop}\Avvia AI Motore OCR"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\Avvia-OCR-Runtime-Nascosto.vbs"""; WorkingDir: "{app}"
 Name: "{userprograms}\Motore OCR\Avvia AI Locale"; Filename: "{sys}\wscript.exe"; Parameters: """{app}\Avvia-OCR-Runtime-Nascosto.vbs"""; WorkingDir: "{app}"
 
 [Registry]
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "MotoreOCRLocalRuntime"; ValueData: """{sys}\wscript.exe"" ""{app}\Avvia-OCR-Runtime-Nascosto.vbs"""; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "MotoreOCRLocalRuntime"; Flags: deletevalue uninsdeletevalue
+
+[InstallDelete]
+Type: files; Name: "{userstartup}\Motore OCR Local Runtime.lnk"
 
 [Run]
 Filename: "{cmd}"; Parameters: "/d /c ""{app}\Configure-Local-AI.cmd"""; WorkingDir: "{app}"; StatusMsg: "Configurazione AI locale..."; Flags: waituntilterminated
-Filename: "{sys}\wscript.exe"; Parameters: """{app}\Avvia-OCR-Runtime-Nascosto.vbs"""; WorkingDir: "{app}"; Description: "Avvia Motore OCR AI Locale"; Flags: postinstall skipifsilent nowait
