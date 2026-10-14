@@ -161,7 +161,7 @@ function promptFor(request){
     'Revisore OCR locale. JSON valido e conciso.',
     'Non inventare testo, coordinate, regioni o fieldId.',
     'Valuta SOLO i token forniti e il loro contesto. Suggerisci correzioni soltanto quando plausibili; altrimenti segnala incertezza.',
-    'Rispondi SOLO con un piccolo oggetto JSON. Ometti gli array vuoti non necessari.',
+    'Rispondi SOLO con un singolo oggetto JSON valido e completo, senza markdown né testo prima/dopo. Ometti gli array vuoti non necessari.',
     'Schema minimo:',
     '{"documentClass":"generic-document","documentClassConfidence":0.8,"structureCoherent":true,"issues":[],"tokenSuggestions":[],"summary":""}',
     'INPUT:',
@@ -187,8 +187,9 @@ async function review(request){
     body:JSON.stringify({
       model:id,
       stream:false,
-      temperature:0.1,
-      max_tokens:160,
+      temperature:0,
+      max_tokens:320,
+      response_format:{type:'json_object'},
       messages:[{role:'user',content:promptFor(request)}]
     })
   });
