@@ -33,6 +33,14 @@ if errorlevel 1 (
 )
 set "PATH=%PATH%;%ProgramFiles%\nodejs;%LOCALAPPDATA%\Microsoft\WinGet\Links"
 
+set "NODE_EXE="
+for /f "delims=" %%I in ('where node 2^>nul') do if not defined NODE_EXE set "NODE_EXE=%%I"
+if not defined NODE_EXE if exist "%ProgramFiles%\nodejs\node.exe" set "NODE_EXE=%ProgramFiles%\nodejs\node.exe"
+if not defined NODE_EXE if exist "%LOCALAPPDATA%\Programs\nodejs\node.exe" set "NODE_EXE=%LOCALAPPDATA%\Programs\nodejs\node.exe"
+if not defined NODE_EXE call :fail 3 "Node.js installato ma eseguibile non trovato."
+>"%~dp0node-path.txt" echo %NODE_EXE%
+call :log "Node.js rilevato: %NODE_EXE%"
+
 call :stage 2 "Verifica runtime llama.cpp"
 set "LLAMA_FOUND="
 where llama-server >nul 2>&1 && set "LLAMA_FOUND=1"
@@ -77,10 +85,20 @@ if not exist "%MODEL_FILE%" (
 call :stage 4 "Avvio runtime e verifica finale"
 call :log "Avvio OCR Local Runtime 0.4.0."
 wscript.exe "%~dp0Avvia-OCR-Runtime-Nascosto.vbs"
-timeout /t 4 /nobreak >nul
+timeout /t 2 /nobreak >nul
 
-curl.exe -fsS --max-time 8 http://127.0.0.1:4097/health > "%TEMP%\motore-ocr-health.json" 2>nul
-if errorlevel 1 call :fail 7 "Runtime locale non raggiungibile dopo l'installazione."
+set "RUNTIME_OK="
+for /l %%R in (1,1,10) do (
+  if not defined RUNTIME_OK (
+    curl.exe -fsS --max-time 2 http://127.0.0.1:4097/health > "%TEMP%\motore-ocr-health.json" 2>nul
+    if not errorlevel 1 (
+      set "RUNTIME_OK=1"
+    ) else (
+      timeout /t 1 /nobreak >nul
+    )
+  )
+)
+if not defined RUNTIME_OK call :fail 7 "Runtime locale non raggiungibile dopo l'installazione."
 
 findstr /C:"\"runtimeVersion\":\"0.4.0\"" "%TEMP%\motore-ocr-health.json" >nul
 if errorlevel 1 call :fail 8 "Il runtime in ascolto non e la versione 0.4.0."
