@@ -1,5 +1,5 @@
 #define MyAppName "Motore OCR - AI Locale"
-#define MyAppVersion "0.3.5"
+#define MyAppVersion "0.3.6"
 #define MyAppPublisher "Bigpedros"
 
 [Setup]
@@ -31,6 +31,10 @@ Name: "{userprograms}\Motore OCR\Avvia AI Locale"; Filename: "{sys}\wscript.exe"
 
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "MotoreOCRLocalRuntime"; Flags: deletevalue uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\motoreocr-ai"; ValueType: string; ValueName: ""; ValueData: "URL:Motore OCR AI"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\motoreocr-ai"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
+Root: HKCU; Subkey: "Software\Classes\motoreocr-ai\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{sys}\wscript.exe,0"
+Root: HKCU; Subkey: "Software\Classes\motoreocr-ai\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{sys}\wscript.exe"" ""{app}\Avvia-OCR-Runtime-Nascosto.vbs"""
 
 [InstallDelete]
 Type: files; Name: "{userstartup}\Motore OCR Local Runtime.lnk"
